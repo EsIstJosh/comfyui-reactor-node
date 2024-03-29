@@ -459,6 +459,50 @@ class RestoreFace:
         result = reactor.restore_face(self,image,model,visibility,codeformer_weight,facedetection)
         return (result,)
 
+class FaceModelSwitch:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "boolean_input": ("BOOLEAN",{"default":False}),
+            },
+            "optional": {
+                "face_model_1": (get_model_names(get_facemodels),),
+                "face_model_2": (get_model_names(get_facemodels),),
+                "image_1": ("IMAGE",),
+                "image_2": ("IMAGE",),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE", "FACE_MODEL")
+    FUNCTION = "execute"
+    CATEGORY = "🌌 ReActor"
+
+    def __init__(self):
+        self.reactor_face_swap = reactor()
+
+    def execute(self, boolean_input, face_model_1=None, face_model_2=None, image_1=None, image_2=None):
+        selected_face_model_1 = face_model_1
+        selected_face_model_2 = face_model_2
+        selected_image_1 = image_1
+        selected_image_2 = image_2
+        selected_face_model = None
+        selected_image = None
+        if selected_face_model_1 == None and selected_image_1 == None or selected_face_model_2 == None and selected_image_2 == None:
+            error_msg = "Please provide both face model and image inputs."
+            logger.error(error_msg)
+            return (None, None)
+        
+        else: 
+            
+            if boolean_input:
+                selected_face_model = selected_face_model_1
+                selected_image = selected_image_1
+            else:
+                selected_face_model = selected_face_model_2
+                selected_image = selected_image_2
+
+        return (selected_image, selected_face_model)
 
 NODE_CLASS_MAPPINGS = {
     "ReActorFaceSwap": reactor,
@@ -466,6 +510,7 @@ NODE_CLASS_MAPPINGS = {
     "ReActorSaveFaceModel": SaveFaceModel,
     "ReActorRestoreFace": RestoreFace,
     "ReActorBuildFaceModel": BuildFaceModel,
+    "FaceModelSwitch":FaceModelSwitch
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -474,4 +519,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "ReActorSaveFaceModel": "Save Face Model",
     "ReActorRestoreFace": "Restore Face",
     "ReActorBuildFaceModel": "Build Blended Face Model",
+    "FaceModelSwitch": "Load Model/Image via Boolean"
 }
